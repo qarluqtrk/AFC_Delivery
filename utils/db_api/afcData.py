@@ -1,7 +1,6 @@
 import tracemalloc
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, BigInteger
-from sqlalchemy.dialects.postgresql import BYTEA
+from sqlalchemy import create_engine, Column, Integer, BigInteger
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 from data.config import POSTER_API
@@ -22,6 +21,7 @@ class Cart(Base):
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger)
     product_id = Column(Integer)
+    modificator_id = Column(Integer, nullable=True)
     quantity = Column(Integer)
 
     def add_to_cart(self, user_id, product_id, quantity):
@@ -29,17 +29,29 @@ class Cart(Base):
         session.add(new_cart)
         session.commit()
 
-    def check(self, user_id, product_id=None):
+    def add_to_cart_modificator(self, user_id, product_id, modificator_id, quantity):
+        new_cart = Cart(user_id=user_id, product_id=product_id, modificator_id=modificator_id, quantity=quantity)
+        session.add(new_cart)
+        session.commit()
+
+    def check(self, user_id, product_id=None, modificator_id=None):
         if product_id is None:
             if session.query(Cart).filter(Cart.user_id == user_id).all():
                 return True
             else:
                 return False
         else:
-            if session.query(Cart).filter(Cart.user_id == user_id, Cart.product_id == product_id).first():
-                return True
+            if modificator_id is None:
+                if session.query(Cart).filter(Cart.user_id == user_id, Cart.product_id == product_id).first():
+                    return True
+                else:
+                    return False
             else:
-                return False
+                if session.query(Cart).filter(Cart.user_id == user_id, Cart.product_id == product_id,
+                                              Cart.modificator_id == modificator_id).first():
+                    return True
+                else:
+                    return False
 
     def get_cart(self, user_id):
         return session.query(Cart).filter(Cart.user_id == user_id).order_by(Cart.id).all()
@@ -51,9 +63,16 @@ class Cart(Base):
     def cart_total(self, user_id):
         cart_items = session.query(Cart).filter(Cart.user_id == user_id).order_by(Cart.id).all()
         cart_total_price = 0
+        price = ''
         for cart_item in cart_items:
             product = PosterAPI(POSTER_API).get_product(cart_item.product_id)
-            price = f"{product['spots'][0]['price']}"
+            if cart_item.modificator_id is None:
+                price = f"{product['spots'][0]['price']}"
+            else:
+                for modification in product['modifications']:
+                    if modification['modificator_id'] == str(cart_item.modificator_id):
+                        price = f"{modification['spots'][0]['price']}"
+                        break
             cart_total_price += int(price) * int(cart_item.quantity)
 
         return str(cart_total_price)

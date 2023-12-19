@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters import state
 class MenuState(state.StatesGroup):
     categories = state.State()
     product = state.State()
+    modifications = state.State()
     booking = state.State()
 
 

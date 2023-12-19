@@ -83,8 +83,8 @@ async def cart_handler(call: types.CallbackQuery, state):
         await call.message.delete()
         await state.finish()
         await bot_start(call.message)
-    else:
-        await call.message.edit_text('Buyurtma turini tanlang', reply_markup=select_type_of_service())
-        await Checkout.service_type.set()
+    # elif call.data == 'order':
+    #     await call.message.edit_text('Buyurtma turini tanlang', reply_markup=select_type_of_service())
+    #     await Checkout.service_type.set()
 
 

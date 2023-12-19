@@ -33,4 +33,20 @@ def booking_key(quantity):
     return keyboard
 
 
+def choose_modification_key(modifications):
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    for modification in modifications:
+        keyboard.add(
+            InlineKeyboardButton(text=f"{modification['modificator_name']} - {modification['spots'][0]['price']}",
+                                 callback_data=modification['modificator_id']))
+    keyboard.add(InlineKeyboardButton(text="🔙Ortga qaytish", callback_data="back_to_products"))
+    return keyboard
 
+
+def dish_modification_key(modifications):
+    keyboard = InlineKeyboardMarkup()
+    for modification in modifications:
+        keyboard.add(InlineKeyboardButton(text=f"{modification['name']} - {modification['price']}",
+                                          callback_data=modification['dish_modification_id']))
+    keyboard.add(InlineKeyboardButton(text="🔙Ortga qaytish", callback_data="back_to_products"))
+    return keyboard

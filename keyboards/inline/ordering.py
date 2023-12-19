@@ -2,13 +2,11 @@ from aiogram import types
 
 
 def select_type_of_service():
-    return types.InlineKeyboardMarkup(inline_keyboard=[
-        [
-            types.InlineKeyboardButton(text='Yetkazib berish🚚', callback_data='delivery'),
-            types.InlineKeyboardButton(text='Oib ketish🥡', callback_data='takeout'),
-            types.InlineKeyboardButton(text='Ortga qaytish', callback_data='back_to_main')
-        ]
-    ])
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    keyboard.add(types.InlineKeyboardButton(text='Yetkazib berish🚚', callback_data='delivery'))
+    keyboard.add(types.InlineKeyboardButton(text='Oib ketish🥡', callback_data='takeout'))
+    keyboard.add(types.InlineKeyboardButton(text='Ortga qaytish', callback_data='back_to_main'))
+    return keyboard
 
 
 def verify_location():

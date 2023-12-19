@@ -70,15 +70,6 @@ async def location_check(call: types.CallbackQuery, state: FSMContext):
         await bot.delete_message(call.from_user.id, data['location_coordinates'].message_id)
         if call.data == 'verify_location':
             data['service_type'] = 3
-            product = []
-            for i in cart.get_cart(user_id=call.from_user.id):
-                product.append({
-                    'product_id': i.product_id,
-                    'count': i.quantity
-                })
-
-                data['product'] = product.copy()
-                data['cart_total'] = cart.cart_total(call.from_user.id)
             await bot.send_invoice(call.from_user.id,
                                    title='AFC Delivery',
                                    description='description',

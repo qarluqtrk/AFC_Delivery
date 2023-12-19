@@ -2,10 +2,8 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from data.config import PROVIDER_TOKEN
-from handlers.users.orders.cart import cart_view
-from handlers.users.start import bot_start
 from keyboards.default.key import request_location
-from keyboards.inline.ordering import select_type_of_service
+from keyboards.inline.cart import cart_keyboard
 from keyboards.inline.start import start_keyboard
 from loader import dp, bot, cart, afc
 from states.menu import Checkout
@@ -14,6 +12,22 @@ from states.menu import Checkout
 @dp.callback_query_handler(state=Checkout.service_type)
 async def service_type_view(call: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
+        product = []
+        for i in cart.get_cart(user_id=call.from_user.id):
+            if i.modificator_id is None:
+                product.append({
+                    'product_id': i.product_id,
+                    'count': i.quantity
+                })
+            else:
+                product.append({
+                    'product_id': i.product_id,
+                    'count': i.quantity,
+                    'modificator_id': i.modificator_id
+                })
+
+        data['product'] = product.copy()
+        data['cart_total'] = cart.cart_total(call.from_user.id)
         if call.data == 'delivery':
             data['service_type'] = 3
             data['request_location_message'] = await call.message.answer('Manzilni yuboring',
@@ -23,15 +37,7 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
         elif call.data == 'takeout':
             data['service_type'] = 2
             await Checkout.payment.set()
-            product = []
-            for i in cart.get_cart(user_id=call.from_user.id):
-                product.append({
-                    'product_id': i.product_id,
-                    'count': i.quantity
-                })
 
-                data['product'] = product.copy()
-                data['cart_total'] = cart.cart_total(call.from_user.id)
             await call.message.delete()
             await bot.send_invoice(call.from_user.id,
                                    title='AFC Delivery',
@@ -44,16 +50,20 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
                                    payload='test')
         else:
             await state.finish()
+            if not cart.check(user_id=call.from_user.id):
+                await call.message.answer("Savatingiz bo'sh", reply_markup=start_keyboard(call.from_user.id))
+            else:
+                try:
+                    loading = await call.message.answer("Savatingiz yuklanmoqda...")
+                    await call.message.answer(f"To'lovga {cart.cart_total(call.from_user.id)[:-2]} so'm berildi\n"
+                                              "Quyida sizning savatingiz: ",
+                                              reply_markup=cart_keyboard(user_id=call.from_user.id))
+                    await loading.delete()
+                    await Checkout.cart.set()
+                except:
+                    cart.clear(user_id=call.from_user.id)
+                    await call.message.answer("Savatingiz bo'sh", reply_markup=start_keyboard(call.from_user.id))
             await call.message.delete()
-            photo_path = 'images/afc-logo.png'
-            with open(photo_path, 'rb') as photo:
-                await call.message.answer_photo(
-                    photo=photo,
-                    caption="Assalomu Alaykum!\n"
-                            "AFC ga xush kelibsiz!\n"
-                            "Sizni menyu bilan tanishtirishim, buyurtma olishim va joy band qilishingizga yordam berishim mumkin\n"
-                            "Davom etish uchun quyidagi tugmalardan birini bosing👇👇",
-                    reply_markup=start_keyboard(user_id=call.from_user.id))
 
 
 @dp.pre_checkout_query_handler(lambda q: True, state=Checkout.payment)
@@ -84,7 +94,6 @@ async def successful_payment(message: types.Message, state: FSMContext):
                                          products=data['product'],
                                          service_type=2)
             if a:
-                print(a)
                 await message.answer("Buyurtma jo'natildi")
         else:
             a = afc.create_delivery_order(phone=data['phone_number'],
@@ -94,7 +103,6 @@ async def successful_payment(message: types.Message, state: FSMContext):
                                           service_type=3,
                                           client_address=data['location'])
             if a:
-                print(a)
                 await message.answer("Buyurtma jo'natildi")
 
         # Clear cart

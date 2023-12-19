@@ -42,7 +42,6 @@ class PosterAPI:
             'payment': payment,
             'products': products
         }
-        print(incoming_order)
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()
         return response['response']
@@ -57,7 +56,6 @@ class PosterAPI:
             'payment': payment,
             'products': products
         }
-        print(incoming_order)
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()
         return response
