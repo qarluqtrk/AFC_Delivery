@@ -21,11 +21,18 @@ def cart_keyboard(user_id):
         if cart_item.modificator_id is None:
             price = f"{product['spots'][0]['price']}"[:-2]
         else:
-            for modification in product['modifications']:
-                if modification['modificator_id'] == str(cart_item.modificator_id):
-                    price = f"{modification['spots'][0]['price']}"[:-2]
-                    modificator_name = f"{modification['modificator_name']}"
-                    break
+            if 'modifications' in product:
+                for modification in product['modifications']:
+                    if modification['modificator_id'] == str(cart_item.modificator_id):
+                        price = f"{modification['spots'][0]['price']}"[:-2]
+                        modificator_name = f"{modification['modificator_name']}"
+                        break
+            elif 'group_modifications' in product:
+                for modification in product['group_modifications'][0]['modifications']:
+                    if modification['dish_modification_id'] == int(cart_item.modificator_id):
+                        price = f"{modification['price']}"
+                        modificator_name = f"{modification['name']}"
+                        break
 
         keyboard.add(
             types.InlineKeyboardButton(

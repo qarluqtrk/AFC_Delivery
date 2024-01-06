@@ -64,15 +64,25 @@ class Cart(Base):
         cart_items = session.query(Cart).filter(Cart.user_id == user_id).order_by(Cart.id).all()
         cart_total_price = 0
         price = ''
+        products = {}
+        products_poster = PosterAPI(POSTER_API).get_products()
+        for i in products_poster:
+            products[(i['product_id'])] = i
         for cart_item in cart_items:
-            product = PosterAPI(POSTER_API).get_product(cart_item.product_id)
+            product = products[f"{cart_item.product_id}"]
             if cart_item.modificator_id is None:
-                price = f"{product['spots'][0]['price']}"
+                price = f"{product['sources'][1]['price']}"
             else:
-                for modification in product['modifications']:
-                    if modification['modificator_id'] == str(cart_item.modificator_id):
-                        price = f"{modification['spots'][0]['price']}"
-                        break
+                if 'modification' in product:
+                    for modification in product['modifications']:
+                        if modification['modificator_id'] == str(cart_item.modificator_id):
+                            price = f"{modification['sources'][1]['price']}"
+                            break
+                elif 'group_modifications' in product:
+                    for modification in product['group_modifications'][0]['modifications']:
+                        if modification['dish_modification_id'] == int(cart_item.modificator_id):
+                            price = f"{modification['price']}" + '00'
+                            break
             cart_total_price += int(price) * int(cart_item.quantity)
 
         return str(cart_total_price)
