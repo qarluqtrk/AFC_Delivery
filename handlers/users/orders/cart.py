@@ -1,16 +1,12 @@
 from aiogram import types
-from aiogram.dispatcher import FSMContext
 
-from data.config import PROVIDER_TOKEN, ADMINS
 from handlers.users.start import bot_start
-from keyboards.default.key import request_phone_number, request_location
 from keyboards.inline.cart import cart_keyboard
-from keyboards.inline.ordering import select_type_of_service, verify_location
+from keyboards.inline.ordering import select_type_of_service
 from keyboards.inline.start import start_keyboard
-from loader import dp, afc, cart, bot
+from loader import dp, cart
 from states.menu import Checkout
 from utils.db_api.afcData import session, Cart
-from utils.geo_py import get_location
 
 
 # cart view
@@ -23,6 +19,7 @@ async def cart_view(call: types.CallbackQuery):
         try:
             print(cart.get_cart(user_id=call.from_user.id))
             loading = await call.message.edit_caption("Savatingiz yuklanmoqda...")
+            # await call.message.answer("BOR ")
             await call.message.answer(f"To'lovga {cart.cart_total(call.from_user.id)[:-2]} so'm berildi\n"
                                       "Quyida sizning savatingiz: ",
                                       reply_markup=cart_keyboard(user_id=call.from_user.id))
@@ -37,7 +34,9 @@ async def cart_view(call: types.CallbackQuery):
 async def cart_handler(call: types.CallbackQuery, state):
     if call.data.startswith('plus'):
         cart_item_id = call.data.split(' - ')[1]
+
         cart_item = session.query(Cart).filter(Cart.id == cart_item_id).first()
+
         cart_item.quantity += 1
         session.commit()
         await call.message.edit_text(text=f"To'lovga {cart.cart_total(call.from_user.id)[:-2]} so'm berildi\n"
@@ -87,5 +86,3 @@ async def cart_handler(call: types.CallbackQuery, state):
     elif call.data == 'order':
         await call.message.edit_text('Buyurtma turini tanlang', reply_markup=select_type_of_service())
         await Checkout.service_type.set()
-
-

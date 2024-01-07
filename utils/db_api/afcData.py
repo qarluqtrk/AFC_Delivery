@@ -18,7 +18,7 @@ Base = declarative_base()
 class Cart(Base):
     __tablename__ = "cart"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger)
     product_id = Column(Integer)
     modificator_id = Column(Integer, nullable=True)
@@ -73,7 +73,7 @@ class Cart(Base):
             if cart_item.modificator_id is None:
                 price = f"{product['sources'][1]['price']}"
             else:
-                if 'modification' in product:
+                if 'modifications' in product:
                     for modification in product['modifications']:
                         if modification['modificator_id'] == str(cart_item.modificator_id):
                             price = f"{modification['sources'][1]['price']}"
