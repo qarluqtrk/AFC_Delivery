@@ -1,5 +1,6 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
+from aiogram.types import ReplyKeyboardRemove
 from geopy import Nominatim
 
 from data.config import PROVIDER_TOKEN

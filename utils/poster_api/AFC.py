@@ -40,14 +40,15 @@ class PosterAPI:
             'service_mode': service_type,
             'client_address': client_address,
             'payment': payment,
-            'products': products
+            'products': products,
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()
+        print(response)
         return response['response']
 
     def create_takeout_order(self, phone, first_name, payment, products, service_type, client_address=None,
-                             comment=None, delivery_time=None, ):
+                             comment=None, delivery_time=None):
         incoming_order = {
             'spot_id': 1,
             'phone': phone,
@@ -58,6 +59,7 @@ class PosterAPI:
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()
+        print(response)
         return response
 
     def get_order(self, incoming_order_id):

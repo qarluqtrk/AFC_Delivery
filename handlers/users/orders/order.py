@@ -1,5 +1,6 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
+from aiogram.types import ReplyKeyboardRemove
 
 from data.config import PROVIDER_TOKEN
 from keyboards.default.key import request_location
@@ -13,17 +14,39 @@ from states.menu import Checkout
 async def service_type_view(call: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
         product = []
-        for i in cart.get_cart(user_id=call.from_user.id):
-            if i.modificator_id is None:
+        cart_items = cart.get_cart(user_id=call.from_user.id)
+
+        poster_products = afc.get_products()
+        products = {}
+        for i in poster_products:
+            products[i['product_id']] = i
+
+    for cart_item in cart_items:
+        if cart_item.modificator_id is None:
+            product.append(
+
+                {
+                    'product_id': cart_item.product_id,
+                    'count': cart_item.quantity
+                }
+
+            )
+        else:
+            t = products[cart_item.product_id]
+            print("")
+            if 'modifications' in t:
                 product.append({
-                    'product_id': i.product_id,
-                    'count': i.quantity
+                    'product_id': cart_item.product_id,
+                    "modificator_id": cart_item.modificator_id,
+                    'count': cart_item.quantity
+
                 })
-            else:
+
+            elif "group_modifications" in t:
                 product.append({
-                    'product_id': i.product_id,
-                    'count': i.quantity,
-                    'modificator_id': i.modificator_id
+                    'product_id': cart_item.product_id,
+                    "modifications": [{"m": cart_item.modificator_id, "a": 1}],
+                    'count': cart_item.quantity
                 })
 
         data['product'] = product.copy()
@@ -32,6 +55,8 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
             data['service_type'] = 3
             data['request_location_message'] = await call.message.answer('Manzilni yuboring',
                                                                          reply_markup=request_location())
+            await call.message.answer(text='Manzilni yuboring',
+                                      reply_markup=ReplyKeyboardRemove())
             await call.message.delete()
             await Checkout.location.set()
         elif call.data == 'takeout':

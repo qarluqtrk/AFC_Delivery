@@ -134,7 +134,9 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
             data['quantity']: int = 1
             data['product_id'] = call.data
             product = afc.get_product(call.data)
-            if 'modifications' in product:
+            # if 'modifications' in product:
+            if isinstance(product, dict) and 'modifications' in product:
+
                 await call.message.answer_photo(photo=afc.base_url + product['photo'],
                                                 caption=f"{product['product_name']}\n",
                                                 reply_markup=choose_modification_key(
@@ -143,8 +145,8 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
                                                 ))
                 await call.message.delete()
                 await MenuState.modifications.set()
+            elif isinstance(product, dict) and 'group_modifications' in product:
 
-            elif 'group_modifications' in product:
                 if len(product['group_modifications']) == 1:
                     if product['group_modifications'][0]['type'] == 1:
                         await call.message.answer_photo(photo=afc.base_url + product['photo'],
@@ -187,15 +189,12 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
 
 
                 elif len(product['group_modifications']) > 1:
-                    print(f"Product : - {product}")
                     caption = ''
                     caption += f"{product['product_name']}\n"
                     caption += f"Narxi: <b>{product['sources'][1]['price'][:-2]}</b>\n\n\n so'm"
                     caption += f"Combo Quyidagilarni o'z ichiga oladi:\n\n"
                     count = 1
                     for combo_item in product['group_modifications']:
-                        print(combo_item)
-
                         caption += f"{count}.{combo_item['modifications'][0]['name']} - {combo_item['modifications'][0]['brutto']} ta\n"
                         count += 1
                     await call.message.answer_photo(photo=afc.base_url + product['photo'],
@@ -234,11 +233,9 @@ async def choose_modification(call: types.CallbackQuery, state: FSMContext):
                         price = modification['sources'][1]['price'][:-2]
                         break
             elif "group_modifications" in product:
-                print(product)
                 for modification in product['group_modifications'][0]['modifications']:
                     if modification['dish_modification_id'] == int(call.data):
                         price = modification['price']
-
                         break
             await call.message.edit_caption(caption=f"{product['product_name']}\n"
                                                     f"{price} so'm",
@@ -277,6 +274,7 @@ async def booking(call: types.CallbackQuery, state: FSMContext):
                 else:
                     cart.add_to_cart_modificator(user_id=call.from_user.id, product_id=data['product_id'],
                                                  modificator_id=data['modificator_id'], quantity=data['quantity'])
+                    print(data)
 
                     with open(photo_path, 'rb') as photo:
                         await call.message.edit_media(
@@ -300,30 +298,6 @@ async def booking(call: types.CallbackQuery, state: FSMContext):
                             media=types.InputMediaPhoto(media=photo, caption="Savatchaga qo'shildi"))
                         await call.message.edit_reply_markup(reply_markup=start_keyboard(user_id=call.from_user.id))
                         await state.finish()
-            # try:
-            #     a = data['modificator_id']
-            # except:
-            #     data['modificator_id'] = None
-            # if cart.check(call.from_user.id, data['product_id'], data['modificator_id']):
-            #
-            #     with open(photo_path, 'rb') as photo:
-            #         await call.message.edit_media(
-            #             media=types.InputMediaPhoto(media=photo, caption="Bu mahsulot sizning savatingizda bor"))
-            #         await call.message.edit_reply_markup(reply_markup=start_keyboard(user_id=call.from_user.id))
-            #         await state.finish()
-            # else:
-            #     try:
-            #         cart.add_to_cart_modificator(call.from_user.id, data['product_id'], data['modificator_id'],
-            #                                      data['quantity'])
-            #     except:
-            #         cart.add_to_cart(call.from_user.id, data['product_id'], data['quantity'])
-            #
-            #
-            #     with open(photo_path, 'rb') as photo:
-            #         await call.message.edit_media(
-            #             media=types.InputMediaPhoto(media=photo, caption="Savatchaga qo'shildi"))
-            #         await call.message.edit_reply_markup(reply_markup=start_keyboard(user_id=call.from_user.id))
-            #         await state.finish()
     elif call.data == 'back_to_products':
 
         with open(photo_path, 'rb') as photo:

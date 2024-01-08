@@ -17,9 +17,8 @@ async def cart_view(call: types.CallbackQuery):
         await call.message.edit_caption("Savatingiz bo'sh", reply_markup=start_keyboard(call.from_user.id))
     else:
         try:
-            print(cart.get_cart(user_id=call.from_user.id))
             loading = await call.message.edit_caption("Savatingiz yuklanmoqda...")
-            # await call.message.answer("BOR ")
+
             await call.message.answer(f"To'lovga {cart.cart_total(call.from_user.id)[:-2]} so'm berildi\n"
                                       "Quyida sizning savatingiz: ",
                                       reply_markup=cart_keyboard(user_id=call.from_user.id))
@@ -27,7 +26,7 @@ async def cart_view(call: types.CallbackQuery):
             await Checkout.cart.set()
         except:
             cart.clear(user_id=call.from_user.id)
-            await call.message.edit_caption("Savatingiz bo'sh", reply_markup=start_keyboard(call.from_user.id))
+            await call.message.edit_caption(caption="Savatingiz bo'sh", reply_markup=start_keyboard(call.from_user.id))
 
 
 @dp.callback_query_handler(state=Checkout.cart)

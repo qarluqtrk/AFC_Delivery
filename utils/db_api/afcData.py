@@ -82,6 +82,7 @@ class Cart(Base):
                     for modification in product['group_modifications'][0]['modifications']:
                         if modification['dish_modification_id'] == int(cart_item.modificator_id):
                             price = f"{modification['price']}" + '00'
+                            price = int(price)
                             break
             cart_total_price += int(price) * int(cart_item.quantity)
 
