@@ -45,7 +45,6 @@ class PosterAPI:
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()
-        print(response)
         return response['response']
 
     def create_takeout_order(self, phone, first_name, payment, products, service_type, client_address=None,
@@ -55,8 +54,8 @@ class PosterAPI:
             'phone': phone,
             'name': first_name,
             'service_mode': service_type,
-            'payment': payment,
-            'products': products
+            'products': products,
+            "payment": payment,
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()

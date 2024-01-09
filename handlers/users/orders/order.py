@@ -13,40 +13,34 @@ from states.menu import Checkout
 @dp.callback_query_handler(state=Checkout.service_type)
 async def service_type_view(call: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
-        product = []
-        cart_items = cart.get_cart(user_id=call.from_user.id)
-
         poster_products = afc.get_products()
-        products = {}
+        poster_products_dict = {}
         for i in poster_products:
-            products[i['product_id']] = i
-
-        for cart_item in cart_items:
-            if cart_item.modificator_id is None:
-                product.append(
-
-                    {
-                        'product_id': cart_item.product_id,
-                        'count': cart_item.quantity
-                    }
-
-                )
+            poster_products_dict[i['product_id']] = i
+        product = []
+        for i in cart.get_cart(user_id=call.from_user.id):
+            if i.modificator_id is None:
+                product.append({
+                    'product_id': i.product_id,
+                    'count': i.quantity
+                })
             else:
-                t = products[{cart_item.product_id}]
-                if 'modifications' in t:
+                a = poster_products_dict[f"{i.product_id}"]
+                if 'modifications' in a:
                     product.append({
-                        'product_id': cart_item.product_id,
-                        "modificator_id": cart_item.modificator_id,
-                        'count': cart_item.quantity
-
+                        'product_id': i.product_id,
+                        'count': i.quantity,
+                        'modificator_id': i.modificator_id
                     })
-
-                elif "group_modifications" in t:
+                elif 'group_modifications' in a:
                     product.append({
-                        'product_id': cart_item.product_id,
+                        'product_id': i.product_id,
+                        'count': i.quantity,
+                        "modification": [{
+                            "m": i.modificator_id,
+                            "a": 1
+                        },],
 
-                        'count': cart_item.quantity,
-                        "modification": [{"m": cart_item.modificator_id, "a": 1}]
                     })
 
         data['product'] = product.copy()
@@ -108,7 +102,7 @@ async def successful_payment(message: types.Message, state: FSMContext):
 
         data['payment'] = {
             'type': 1,
-            'sum': message.successful_payment.total_amount  ,
+            'sum': message.successful_payment.total_amount,
             'currency': 'UZS'
         }
 
