@@ -39,8 +39,9 @@ class PosterAPI:
             'name': first_name,
             'service_mode': service_type,
             'client_address': client_address,
-            'payment': payment,
             'products': products,
+            'payment': payment,
+
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()
@@ -59,7 +60,7 @@ class PosterAPI:
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
         response = requests.post(url, json=incoming_order).json()
-        print(response)
+
         return response
 
     def get_order(self, incoming_order_id):

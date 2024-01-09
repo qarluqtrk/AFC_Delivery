@@ -21,33 +21,33 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
         for i in poster_products:
             products[i['product_id']] = i
 
-    for cart_item in cart_items:
-        if cart_item.modificator_id is None:
-            product.append(
+        for cart_item in cart_items:
+            if cart_item.modificator_id is None:
+                product.append(
 
-                {
-                    'product_id': cart_item.product_id,
-                    'count': cart_item.quantity
-                }
+                    {
+                        'product_id': cart_item.product_id,
+                        'count': cart_item.quantity
+                    }
 
-            )
-        else:
-            t = products[cart_item.product_id]
-            print("")
-            if 'modifications' in t:
-                product.append({
-                    'product_id': cart_item.product_id,
-                    "modificator_id": cart_item.modificator_id,
-                    'count': cart_item.quantity
+                )
+            else:
+                t = products[{cart_item.product_id}]
+                if 'modifications' in t:
+                    product.append({
+                        'product_id': cart_item.product_id,
+                        "modificator_id": cart_item.modificator_id,
+                        'count': cart_item.quantity
 
-                })
+                    })
 
-            elif "group_modifications" in t:
-                product.append({
-                    'product_id': cart_item.product_id,
-                    "modifications": [{"m": cart_item.modificator_id, "a": 1}],
-                    'count': cart_item.quantity
-                })
+                elif "group_modifications" in t:
+                    product.append({
+                        'product_id': cart_item.product_id,
+
+                        'count': cart_item.quantity,
+                        "modification": [{"m": cart_item.modificator_id, "a": 1}]
+                    })
 
         data['product'] = product.copy()
         data['cart_total'] = cart.cart_total(call.from_user.id)
@@ -108,9 +108,10 @@ async def successful_payment(message: types.Message, state: FSMContext):
 
         data['payment'] = {
             'type': 1,
-            'sum': cart.cart_total(message.from_user.id),
+            'sum': message.successful_payment.total_amount  ,
             'currency': 'UZS'
         }
+
 
         if data['service_type'] == 2:
             a = afc.create_takeout_order(phone=data['phone_number'],

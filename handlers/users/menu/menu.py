@@ -48,84 +48,6 @@ Menu Product Info and modifications list
 """
 
 
-# @dp.callback_query_handler(state=MenuState.product)
-# async def choose_product(call: types.CallbackQuery, state: FSMContext):
-#     if call.data != 'back_to_categories':
-#         async with state.proxy() as data:
-#             data['quantity']: int = 1
-#             data['product_id'] = call.data
-#             product = afc.get_product(call.data)
-#             if 'modifications' in product:
-#                 await call.message.answer_photo(photo=afc.base_url + product['photo'],
-#                                                 caption=f"{product['product_name']}\n",
-#                                                 reply_markup=choose_modification_key(
-#                                                     modifications=product['modifications'],
-#                                                     type='modifications'))
-#                 await call.message.delete()
-#                 await MenuState.modifications.set()
-#             elif 'group_modifications' in product:
-#                 if len(product['group_modifications']) == 1:
-#                     if product['group_modifications'][0]['type'] == 1:
-#                         await call.message.answer_photo(photo=afc.base_url + product['photo'],
-#                                                         caption=f"{product['product_name']}\n",
-#                                                         reply_markup=choose_modification_key(
-#                                                             modifications=product['group_modifications'][0][
-#                                                                 'modifications'],
-#                                                             type='group_modifications'
-#                                                         ))
-#                         await call.message.delete()
-#                         await MenuState.modifications.set()
-#                     else:
-#                         if product['group_modifications'][0]['num_min'] != product['group_modifications'][0]['num_max']:
-#                             await call.message.answer_photo(photo=afc.base_url + product['photo'],
-#                                                             caption=f"{product['product_name']}\n\n\n",
-#                                                             reply_markup=choose_modification_key(
-#                                                                 modifications=product['group_modifications'][0][
-#                                                                     'modifications'],
-#                                                                 type='group_modifications'
-#                                                             ))
-#                             await call.message.delete()
-#                             await MenuState.modifications.set()
-#                         else:
-#                                 caption = ''
-#                                 caption += f"{product['product_name']}\n"
-#                                 caption += f"Narxi: <b>{product['sources'][1]['price'][:-2]}</b>\n\n\n"
-#                                 caption += f"Combo Quyidagilarni o'z ichiga oladi:\n\n"
-#                                 count = 1
-#                                 for combo_item in product['group_modifications'][0]['modifications']:
-#                                     caption += f"{count}.{combo_item['name']} - {combo_item['brutto']}ta\n"
-#                                     count += 1
-#                                     await call.message.answer_photo(photo=afc.base_url + product['photo'],
-#                                                                 caption=caption,
-#                                                                 reply_markup=booking_key(data['quantity']))
-#                                     await call.message.delete()
-#                                     await MenuState.booking.set()
-
-
-#                 else:
-#                     caption = ''
-#                     caption += f"{product['product_name']}\n"
-#                     caption += f"Narxi: <b>{product['sources'][1]['price'][:-2]}</b>\n\n\n"
-#                     caption += f"Combo Quyidagilarni o'z ichiga oladi:\n\n"
-#                     count = 1
-#                     for combo_item in product['group_modifications']:
-#                         caption += f"{count}.{combo_item['modifications'][0]['name']} - {combo_item['modifications'][0]['brutto']}ta\n"
-#                         count += 1
-#                     await call.message.answer_photo(photo=afc.base_url + product['photo'],
-#                                                     caption=caption,
-#                                                     reply_markup=booking_key(data['quantity']))
-#                     await call.message.delete()
-#                     await MenuState.booking.set()
-#             else:
-#                 await call.message.answer_photo(photo=afc.base_url + product['photo'] + '?token=' + afc.api_key,
-#                                                 caption=f"{product['product_name']}\n"
-#                                                 # f"{product['product_production_description']}\n"
-#                                                         f"{product['spots'][0]['price'][:-2]} so'm",
-#                                                 reply_markup=booking_key(data['quantity']))
-#                 await MenuState.booking.set()
-#     else:
-#         await state.finish()
-#         await menu(call)
 
 @dp.callback_query_handler(state=MenuState.product)
 async def choose_product(call: types.CallbackQuery, state: FSMContext):
@@ -174,7 +96,7 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
                         else:
                             caption = ''
                             caption += f"{product['product_name']}\n"
-                            caption += f"Narxi: <b>{product['sources'][1]['price'][:-2]}</b>\n\n\n"
+                            caption += f"Narxi: <b>{product['sources'][1]['price'][:-2]} so'm</b>\n\n\n"
                             caption += f"Combo Quyidagilarni o'z ichiga oladi:\n\n"
                             count = 1
                             for combo_item in product['group_modifications'][0]['modifications']:
@@ -191,7 +113,7 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
                 elif len(product['group_modifications']) > 1:
                     caption = ''
                     caption += f"{product['product_name']}\n"
-                    caption += f"Narxi: <b>{product['sources'][1]['price'][:-2]}</b>\n\n\n so'm"
+                    caption += f"Narxi: <b>{product['sources'][1]['price'][:-2]} so'm</b>\n\n\n "
                     caption += f"Combo Quyidagilarni o'z ichiga oladi:\n\n"
                     count = 1
                     for combo_item in product['group_modifications']:
@@ -210,6 +132,11 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
                                                         f"{product['spots'][0]['price'][:-2]} so'm",
                                                 reply_markup=booking_key(data['quantity']))
                 await MenuState.booking.set()
+
+
+    else:
+        await state.finish()
+        await menu(call)
 
 
 """
@@ -234,7 +161,7 @@ async def choose_modification(call: types.CallbackQuery, state: FSMContext):
                         break
             elif "group_modifications" in product:
                 for modification in product['group_modifications'][0]['modifications']:
-                    if modification['dish_modification_id'] == int(call.data):
+                    if str(modification['dish_modification_id']) == call.data:
                         price = modification['price']
                         break
             await call.message.edit_caption(caption=f"{product['product_name']}\n"
