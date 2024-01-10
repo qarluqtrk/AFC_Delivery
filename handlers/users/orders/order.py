@@ -9,14 +9,21 @@ from keyboards.inline.start import start_keyboard
 from loader import dp, bot, cart, afc
 from states.menu import Checkout
 
+"""
+Type of Service(Delivery or Teke out)
+"""
+
 
 @dp.callback_query_handler(state=Checkout.service_type)
 async def service_type_view(call: types.CallbackQuery, state: FSMContext):
     async with state.proxy() as data:
+        # API to Dict for accessibility
         poster_products = afc.get_products()
         poster_products_dict = {}
         for i in poster_products:
             poster_products_dict[i['product_id']] = i
+
+        # Saving Cart Products as dict for sending order
         product = []
         for i in cart.get_cart(user_id=call.from_user.id):
             if i.modificator_id is None:
@@ -39,12 +46,14 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
                         "modification": [{
                             "m": i.modificator_id,
                             "a": 1
-                        },],
+                        }, ],
 
                     })
 
         data['product'] = product.copy()
         data['cart_total'] = cart.cart_total(call.from_user.id)
+
+        # Saving Service Type
         if call.data == 'delivery':
             data['service_type'] = 3
             data['request_location_message'] = await call.message.answer('Manzilni yuboring',
@@ -68,6 +77,7 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
                                    start_parameter='start_parameter',
                                    payload='test')
         else:
+            # back button handling(to cart page)
             await state.finish()
             if not cart.check(user_id=call.from_user.id):
                 await call.message.answer("Savatingiz bo'sh", reply_markup=start_keyboard(call.from_user.id))
@@ -85,12 +95,22 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
             await call.message.delete()
 
 
+"""
+To'lov qilinishidan avval ma'lumotlarni olish uchun
+"""
+
+
 @dp.pre_checkout_query_handler(lambda q: True, state=Checkout.payment)
 async def checkout_process(pre_checkout_query: types.PreCheckoutQuery, state: FSMContext):
     async with state.proxy() as data:
         data['phone_number'] = "+" + pre_checkout_query.order_info.phone_number
         data['name'] = pre_checkout_query.order_info.name
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
+
+
+"""
+To'lov amalga oshgandan keyin
+"""
 
 
 @dp.message_handler(content_types=types.ContentTypes.SUCCESSFUL_PAYMENT, state=Checkout.payment)
@@ -105,7 +125,6 @@ async def successful_payment(message: types.Message, state: FSMContext):
             'sum': message.successful_payment.total_amount,
             'currency': 'UZS'
         }
-
 
         if data['service_type'] == 2:
             a = afc.create_takeout_order(phone=data['phone_number'],

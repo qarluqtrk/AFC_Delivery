@@ -19,8 +19,14 @@ Menu categories list
 
 @dp.callback_query_handler(text="menu")
 async def menu(call: types.CallbackQuery):
-    await call.message.edit_caption("Bo'limni tanlang", reply_markup=categories_key())
-    await MenuState.categories.set()
+    try:
+        await call.message.edit_caption("Bo'limni tanlang", reply_markup=categories_key())
+        await MenuState.categories.set()
+    except:
+        with open(photo_path, 'rb') as photo:
+            await call.message.answer_photo(photo, caption="Bo'limni tanlang", reply_markup=categories_key())
+            await MenuState.categories.set()
+            await call.message.delete()
 
 
 """
@@ -35,7 +41,6 @@ async def choose_category(call: types.CallbackQuery, state: FSMContext):
         await MenuState.product.set()
     else:
         await state.finish()
-        # await bot_start(message=call.message)
         await call.message.edit_caption("Assalomu Alaykum!\n"
                                         "AFC ga xush kelibsiz!\n"
                                         "Sizni menyu bilan tanishtirishim, buyurtma olishim va joy band qilishingizga yordam berishim mumkin\n"
@@ -48,7 +53,6 @@ Menu Product Info and modifications list
 """
 
 
-
 @dp.callback_query_handler(state=MenuState.product)
 async def choose_product(call: types.CallbackQuery, state: FSMContext):
     if call.data != 'back_to_categories':
@@ -57,34 +61,56 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
             data['product_id'] = call.data
             product = afc.get_product(call.data)
             if 'modifications' in product:
-                await call.message.answer_photo(photo=afc.base_url + product['photo'],
-                                                caption=f"{product['product_name']}\n",
-                                                reply_markup=choose_modification_key(
-                                                    modifications=product['modifications'],
-                                                    type='modifications'))
+                try:
+                    await call.message.answer_photo(photo=afc.base_url + product['photo'],
+                                                    caption=f"{product['product_name']}\n",
+                                                    reply_markup=choose_modification_key(
+                                                        modifications=product['modifications'],
+                                                        type='modifications'))
+                except:
+                    await call.message.answer(text=f"{product['product_name']}\n",
+                                              reply_markup=choose_modification_key(
+                                                  modifications=product['modifications'],
+                                                  type='modifications'))
                 await call.message.delete()
                 await MenuState.modifications.set()
             elif 'group_modifications' in product:
                 if len(product['group_modifications']) == 1:
                     if product['group_modifications'][0]['type'] == 1:
-                        await call.message.answer_photo(photo=afc.base_url + product['photo'],
-                                                        caption=f"{product['product_name']}\n",
-                                                        reply_markup=choose_modification_key(
-                                                            modifications=product['group_modifications'][0][
-                                                                'modifications'],
-                                                            type='group_modifications'
-                                                        ))
-                        await call.message.delete()
-                        await MenuState.modifications.set()
-                    else:
-                        if product['group_modifications'][0]['num_min'] != product['group_modifications'][0]['num_max']:
+                        try:
                             await call.message.answer_photo(photo=afc.base_url + product['photo'],
-                                                            caption=f"{product['product_name']}\n\n\n",
+                                                            caption=f"{product['product_name']}\n",
                                                             reply_markup=choose_modification_key(
                                                                 modifications=product['group_modifications'][0][
                                                                     'modifications'],
                                                                 type='group_modifications'
                                                             ))
+                        except:
+                            await call.message.answer(text=f"{product['product_name']}\n",
+                                                      reply_markup=choose_modification_key(
+                                                          modifications=product['group_modifications'][0][
+                                                              'modifications'],
+                                                          type='group_modifications'
+                                                      ))
+                        await call.message.delete()
+                        await MenuState.modifications.set()
+                    else:
+                        if product['group_modifications'][0]['num_min'] != product['group_modifications'][0]['num_max']:
+                            try:
+                                await call.message.answer_photo(photo=afc.base_url + product['photo'],
+                                                                caption=f"{product['product_name']}\n\n\n",
+                                                                reply_markup=choose_modification_key(
+                                                                    modifications=product['group_modifications'][0][
+                                                                        'modifications'],
+                                                                    type='group_modifications'
+                                                                ))
+                            except:
+                                await call.message.answer(text=f"{product['product_name']}\n\n\n",
+                                                          reply_markup=choose_modification_key(
+                                                              modifications=product['group_modifications'][0][
+                                                                  'modifications'],
+                                                              type='group_modifications'
+                                                          ))
                             await call.message.delete()
                             await MenuState.modifications.set()
 
@@ -97,9 +123,13 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
                             for combo_item in product['group_modifications'][0]['modifications']:
                                 caption += f"{count}.{combo_item['name']} - {combo_item['brutto']}ta\n"
                                 count += 1
-                            await call.message.answer_photo(photo=afc.base_url + product['photo'],
-                                                            caption=caption,
-                                                            reply_markup=booking_key(data['quantity']))
+                            try:
+                                await call.message.answer_photo(photo=afc.base_url + product['photo'],
+                                                                caption=caption,
+                                                                reply_markup=booking_key(data['quantity']))
+                            except:
+                                await call.message.answer(text=caption,
+                                                          reply_markup=booking_key(data['quantity']))
                             await call.message.delete()
                             await MenuState.booking.set()
                 else:
@@ -111,18 +141,27 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
                     for combo_item in product['group_modifications']:
                         caption += f"{count}.{combo_item['modifications'][0]['name']} - {combo_item['modifications'][0]['brutto']}ta\n"
                         count += 1
-                    await call.message.answer_photo(photo=afc.base_url + product['photo'],
-                                                    caption=caption,
-                                                    reply_markup=booking_key(data['quantity']))
+                    try:
+                        await call.message.answer_photo(photo=afc.base_url + product['photo'],
+                                                        caption=caption,
+                                                        reply_markup=booking_key(data['quantity']))
+                    except:
+                        await call.message.answer(text=caption,
+                                                  reply_markup=booking_key(data['quantity']))
                     await call.message.delete()
                     await MenuState.booking.set()
-
             else:
-                await call.message.answer_photo(photo=afc.base_url + product['photo'],
-                                                caption=f"{product['product_name']}\n"
-                                                # f"{product['product_production_description']}\n"
-                                                        f"{product['spots'][0]['price'][:-2]} so'm",
-                                                reply_markup=booking_key(data['quantity']))
+                try:
+                    await call.message.answer_photo(photo=afc.base_url + product['photo'],
+                                                    caption=f"{product['product_name']}\n"
+                                                    # f"{product['product_production_description']}\n"
+                                                            f"{product['spots'][0]['price'][:-2]} so'm",
+                                                    reply_markup=booking_key(data['quantity']))
+                except:
+                    await call.message.answer(text=f"{product['product_name']}\n"
+                    # f"{product['product_production_description']}\n"
+                                                   f"{product['spots'][0]['price'][:-2]} so'm",
+                                              reply_markup=booking_key(data['quantity']))
                 await MenuState.booking.set()
                 await call.message.delete()
 
@@ -130,8 +169,6 @@ async def choose_product(call: types.CallbackQuery, state: FSMContext):
     else:
         await state.finish()
         await menu(call)
-
-
 
 
 """
@@ -220,7 +257,9 @@ async def booking(call: types.CallbackQuery, state: FSMContext):
                         await call.message.edit_reply_markup(reply_markup=start_keyboard(user_id=call.from_user.id))
                         await state.finish()
     elif call.data == 'back_to_products':
-
-        with open(photo_path, 'rb') as photo:
-            await call.message.edit_media(media=types.InputMediaPhoto(media=photo))
+        try:
+            with open(photo_path, 'rb') as photo:
+                await call.message.edit_media(media=types.InputMediaPhoto(media=photo))
+                await menu(call)
+        except:
             await menu(call)

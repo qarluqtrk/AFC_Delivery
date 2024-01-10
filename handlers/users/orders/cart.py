@@ -10,12 +10,13 @@ from utils.db_api.afcData import session, Cart
 
 
 # cart view
-
 @dp.callback_query_handler(text="cart")
 async def cart_view(call: types.CallbackQuery):
+    # if cart is empty
     if not cart.check(user_id=call.from_user.id):
         await call.message.edit_caption("Savatingiz bo'sh", reply_markup=start_keyboard(call.from_user.id))
     else:
+        # when product deleted which added to cart
         try:
             loading = await call.message.edit_caption("Savatingiz yuklanmoqda...")
 
