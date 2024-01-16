@@ -250,12 +250,18 @@ async def booking(call: types.CallbackQuery, state: FSMContext):
                 else:
                     cart.add_to_cart(user_id=call.from_user.id, product_id=data['product_id'],
                                      quantity=data['quantity'])
-
-                    with open(photo_path, 'rb') as photo:
-                        await call.message.edit_media(
-                            media=types.InputMediaPhoto(media=photo, caption="Savatchaga qo'shildi"))
-                        await call.message.edit_reply_markup(reply_markup=start_keyboard(user_id=call.from_user.id))
-                        await state.finish()
+                    try:
+                        with open(photo_path, 'rb') as photo:
+                            await call.message.edit_media(
+                                media=types.InputMediaPhoto(media=photo, caption="Savatchaga qo'shildi"))
+                            await call.message.edit_reply_markup(reply_markup=start_keyboard(user_id=call.from_user.id))
+                            await state.finish()
+                    except:
+                        with open(photo_path, 'rb') as photo:
+                            await call.message.answer_photo(
+                                photo=photo, caption="Savatchaga qo'shildi",
+                                reply_markup=start_keyboard(user_id=call.from_user.id))
+                            await state.finish()
     elif call.data == 'back_to_products':
         try:
             with open(photo_path, 'rb') as photo:
