@@ -2,10 +2,9 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from loader import afc
 
-categories = afc.get_categories()
-
 
 def categories_key():
+    categories = afc.get_categories()
     keyboard = InlineKeyboardMarkup()
     for category in categories:
         keyboard.add(InlineKeyboardMarkup(text=category['category_name'], callback_data=category['category_id']))
@@ -43,8 +42,9 @@ def choose_modification_key(modifications, type):
         for modification in modifications:
             if modification['sources'][1]['visible'] == 1:
                 keyboard.add(
-                    InlineKeyboardButton(text=f"{modification['modificator_name']} - {modification['sources'][1]['price'][:-2]}",
-                                         callback_data=modification['modificator_id']))
+                    InlineKeyboardButton(
+                        text=f"{modification['modificator_name']} - {modification['sources'][1]['price'][:-2]}",
+                        callback_data=modification['modificator_id']))
     elif type == 'group_modifications':
         for modification in modifications:
             keyboard.add(
