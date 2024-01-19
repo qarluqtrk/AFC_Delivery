@@ -20,6 +20,7 @@ Menu categories list
 @dp.callback_query_handler(text="menu")
 async def menu(call: types.CallbackQuery):
     try:
+        await call.message.edit_media(types.InputMediaPhoto(types.InputFile(photo_path)))
         await call.message.edit_caption("Bo'limni tanlang", reply_markup=categories_key())
         await MenuState.categories.set()
     except:

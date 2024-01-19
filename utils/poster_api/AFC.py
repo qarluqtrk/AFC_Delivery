@@ -44,8 +44,12 @@ class PosterAPI:
 
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
-        response = requests.post(url, json=incoming_order).json()
-        return response['response']
+        response = requests.post(url, json=incoming_order)
+        if response.status_code == 200:
+            if "error" in response.json():
+                return False
+            return True
+        return False
 
     def create_takeout_order(self, phone, first_name, payment, products, service_type, client_address=None,
                              comment=None, delivery_time=None):
@@ -58,9 +62,12 @@ class PosterAPI:
             "payment": payment,
         }
         url = self.base_url + '/api/' + 'incomingOrders.createIncomingOrder' + '?token=' + self.api_key
-        response = requests.post(url, json=incoming_order).json()
-
-        return response
+        response = requests.post(url, json=incoming_order)
+        if response.status_code == 200:
+            if "error" in response.json():
+                return False
+            return True
+        return False
 
     def get_order(self, incoming_order_id):
         url = self.base_url + '/api/' + 'incomingOrders.getIncomingOrder' + '?token=' + self.api_key + '&incoming_order_id=' + str(

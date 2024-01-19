@@ -73,7 +73,7 @@ async def location_check(call: types.CallbackQuery, state: FSMContext):
             data['service_type'] = 3
             await bot.send_invoice(call.from_user.id,
                                    title='AFC Delivery',
-                                   description='description',
+                                   description='Umumiy narx: ' + str(data['cart_total'])[:-2] + ' so\'m',
                                    provider_token=PROVIDER_TOKEN,
                                    currency='UZS',
                                    need_phone_number=True,

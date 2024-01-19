@@ -40,6 +40,11 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
                         'modificator_id': i.modificator_id
                     })
                 elif 'group_modifications' in a:
+                    price = 0
+                    for modification in a['group_modifications'][0]['modifications']:
+                        if modification['dish_modification_id'] == i.modificator_id:
+                            price = modification['price']
+                            break
                     product.append({
                         'product_id': i.product_id,
                         'count': i.quantity,
@@ -47,6 +52,7 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
                             "m": i.modificator_id,
                             "a": 1
                         }, ],
+                        "price": f"{price}00"
 
                     })
 
@@ -69,7 +75,7 @@ async def service_type_view(call: types.CallbackQuery, state: FSMContext):
             await call.message.delete()
             await bot.send_invoice(call.from_user.id,
                                    title='AFC Delivery',
-                                   description='description',
+                                   description=f"Umumiy narx: {str(data['cart_total'])[:-2]} so'm",
                                    provider_token=PROVIDER_TOKEN,
                                    currency='UZS',
                                    need_phone_number=True,
@@ -134,6 +140,8 @@ async def successful_payment(message: types.Message, state: FSMContext):
                                          service_type=2)
             if a:
                 await message.answer("Buyurtma jo'natildi")
+            else:
+                await message.answer("Buyurtmani Jo'natishda xatolik yuz berdi. Yuzaga kelgan noqulayliklar uchun uzr so'raymiz. Iltimos AFC Hodimlari bilan bog'laning\n ☎️Tel: +998882281003")
         else:
             a = afc.create_delivery_order(phone=data['phone_number'],
                                           first_name=data['name'],
@@ -143,10 +151,12 @@ async def successful_payment(message: types.Message, state: FSMContext):
                                           client_address=data['location'])
             if a:
                 await message.answer("Buyurtma jo'natildi")
+            else:
+                await message.answer("Buyurtmani Jo'natishda xatolik yuz berdi. Yuzaga kelgan noqulayliklar uchun uzr so'raymiz. Iltimos AFC Hodimlari bilan bog'laning\n ☎️Tel: +998882281003")
 
         # Clear cart
         cart.clear(user_id=message.from_user.id)
         with open("images/afc-logo.png", "rb") as photo:
-            await message.answer_photo(photo=photo, caption="Savatingiz tozalandi",
+            await message.answer_photo(photo=photo, caption="Hodimlarimiz Tez orada siz bilan bog'lanishadi",
                                        reply_markup=start_keyboard(message.from_user.id))
             await state.finish()
